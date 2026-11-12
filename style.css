@@ -44,3 +44,22 @@ canvas {
 #closeBtn:hover { background: rgba(255, 0, 0, 0.6); }
 #closeBtn.visible { opacity: 1; pointer-events: auto; }
 
+/* Запрещаем браузеру скроллить и зумить при свайпах по canvas */
+canvas {
+    touch-action: none;
+}
+
+@media (max-width: 768px) {
+    #closeBtn {
+        top: 15px;
+        right: 15px;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    .hint {
+        bottom: 15px;
+        left: 15px;
+        font-size: 12px;
+    }
+}

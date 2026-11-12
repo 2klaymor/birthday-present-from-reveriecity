@@ -339,52 +339,51 @@ document.getElementById('closeBtn').addEventListener('click', (e) => {
 });
 
 // ==========================================
-// 5. ЛИСТАНИЕ КОЛЕСИКОМ
+// 5. ЛИСТАНИЕ (МЫШЬ + ТАЧ)
 // ==========================================
-window.addEventListener('wheel', (e) => {
-    if (!isOpen || isAnimating) return;
-    if (openTl.progress() < 0.99) return; 
-    if (Math.abs(e.deltaY) < 20) return;
-    
+
+function triggerShuffle(dir) {
     const now = Date.now();
-    if (now - wheelCooldown < 800) return;
+    if (now - wheelCooldown < 800) return; // Задержка между листаниями
     wheelCooldown = now;
     
-    const dir = e.deltaY > 0 ? 1 : -1;
+    isAnimating = true; 
+
     const front = currentFront === 0 ? photo1 : photo2;
     const back = currentFront === 0 ? photo2 : photo1;
     
     gsap.killTweensOf([front.position, back.position, front.scale, back.scale]);
 
-    // 4. Фотки встают по центру нового вида и летят вперед (Z)
-        // openTl.to(photo1.position, { x: 0, y: 7.65, z: 2.5, duration: 1.0, ease: "power2.out" }, 1.2);
-        // openTl.to(photo2.position, { x: 0.25, y: 7.45, z: 2.2, duration: 1.0, ease: "power2.out" }, 1.2);
-
-        // // // 5. Фотографии раздуваются на весь экран
-        // openTl.to(photo1.scale, { x: 1.4, y: 1.4, z: 0, duration: 1.0, ease: "power2.out" }, 1.4);
-        // openTl.to(photo2.scale, { x: 1.4, y: 1.4, z: 0, duration: 1.0, ease: "power2.out" }, 1.4);
-
     if (dir > 0) {
+        // Вниз: улетает вниз и вглубь
         gsap.to(front.position, { x: 0, y: 7.65, z: 2.5, duration: 0.6, ease: "power2.in" });
         gsap.to(front.rotation, { z: -0.02, duration: 0.6 });
-        gsap.to(front.scale, { x: 1.6, y: 1.6, z: 0, duration: 0.6 });
-        
-        gsap.to(back.position, { x: 1, y: 7.45, z: 2.1, duration: 0.6, ease: "power2.out" });
-        gsap.to(back.rotation, { z: 0.12, duration: 0.6 });
-        gsap.to(back.scale, { x: 1.2, y: 1.2, z: 0, duration: 0.6 });
+        gsap.to(front.scale, { x: 1.6, y: 1.6, z: 0, duration: 0.6 }); 
     } else {
+        // Вверх: улетает вверх и вглубь
         gsap.to(front.position, { x: 0, y: 7.65, z: 2.5, duration: 0.6, ease: "power2.in" });
         gsap.to(front.rotation, { z: -0.02, duration: 0.6 });
-        gsap.to(front.scale, { x: 1.6, y: 1.6, z: 0, duration: 0.6 });
-        
-        gsap.to(back.position, { x: 1, y: 7.45, z: 2.1, duration: 0.6, ease: "power2.out" });
-        gsap.to(back.rotation, { z: 0.12, duration: 0.6 });
-        gsap.to(back.scale, { x: 1.2, y: 1.2, z: 0, duration: 0.6 });
+        gsap.to(front.scale, { x: 1.6, y: 1.6, z: 0, duration: 0.6 }); 
     }
-    
+
+    // Задняя выезжает вперед на место передней
+    gsap.to(back.position, { x: 1, y: 7.45, z: 2.1, duration: 0.6, ease: "power2.out" });
+    gsap.to(back.rotation, { z: 0.12, duration: 0.6 });
+    gsap.to(back.scale, { x: 1.2, y: 1.2, z: 0, duration: 0.6 });
+
+    // Сброс и телепорт через 0.6 секунды
     setTimeout(() => {
         currentFront = 1 - currentFront;
+        isAnimating = false; 
     }, 650);
+}
+
+// Слушатель для ПК (колесико)
+window.addEventListener('wheel', (e) => {
+    if (!isOpen || isAnimating) return;
+    if (openTl.progress() < 0.99) return; 
+    if (Math.abs(e.deltaY) < 20) return;
+    triggerShuffle(e.deltaY > 0 ? 1 : -1);
 });
 
 // ==========================================
@@ -420,3 +419,51 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+
+// ==========================================
+// 7. АДАПТИВНОСТЬ И МОБИЛЬНАЯ ВЕРСИЯ
+// ==========================================
+
+// Функция для красивого масштабирования на разных экранах
+function onWindowResize() {
+    const baseAspect = 1912 / 914; // Твои пропорции ПК
+    camera.aspect = window.innerWidth / window.innerHeight;
+    
+    // Если экран узкий (телефон), мы отдаляем камеру (увеличиваем FOV), 
+    // чтобы по бокам ничего не обрезалось
+    if (camera.aspect < baseAspect) {
+        const baseFovRad = THREE.MathUtils.degToRad(45);
+        const hFov = 2 * Math.atan(Math.tan(baseFovRad / 2) * baseAspect);
+        const vFov = 2 * Math.atan(Math.tan(hFov / 2) / camera.aspect);
+        camera.fov = THREE.MathUtils.radToDeg(vFov);
+    } else {
+        camera.fov = 45; // На широких экранах оставляем как было
+    }
+
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+window.addEventListener('resize', onWindowResize);
+onWindowResize(); // Вызываем сразу при загрузке
+
+// --- МОБИЛЬНЫЕ СВАЙПЫ ---
+let touchStartY = 0;
+
+window.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+window.addEventListener('touchend', (e) => {
+    if (!isOpen || isAnimating) return;
+    if (openTl.progress() < 0.99) return;
+    
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaY = touchStartY - touchEndY;
+    
+    // Если свайпнули больше чем на 40 пикселей
+    if (Math.abs(deltaY) > 40) {
+        triggerShuffle(deltaY > 0 ? 1 : -1);
+    }
+}, { passive: true });
