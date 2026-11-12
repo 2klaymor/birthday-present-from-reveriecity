@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'Typewriter'; /* Придумай любое имя */
-    src: url('./fonts/Punk Typewriter.otf') format('opentype');
+    src: url('fonts/Punk Typewriter.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
 }
