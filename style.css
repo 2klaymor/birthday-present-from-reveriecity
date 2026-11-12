@@ -1,0 +1,46 @@
+@font-face {
+    font-family: 'Typewriter'; /* Придумай любое имя */
+    src: url('./fonts/Punk Typewriter.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #1a0f08;
+    font-family: sans-serif;
+}
+canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+}
+.hint {
+    color: rgba(255, 255, 255, 0.3);
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    font-family: 'Georgia', serif;
+    margin: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+}
+#closeBtn {
+    position: absolute;
+    top: 30px; right: 30px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s, background 0.3s;
+    z-index: 10;
+}
+#closeBtn:hover { background: rgba(255, 0, 0, 0.6); }
+#closeBtn.visible { opacity: 1; pointer-events: auto; }
+
